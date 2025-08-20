@@ -78,4 +78,24 @@ router.post('/dm', async (req: Request, res: Response) => {
     }
 });
 
+// NOVA ROTA PARA PUBLICAR POST
+router.post('/publish-post', async (req: Request, res: Response) => {
+    try {
+        const { image, content } = req.body;
+        
+        if (!image || !content) {
+            return res.status(400).json({ error: 'Image and content are required' });
+        }
+        
+        // Em um projeto real, aqui a lógica de publicação no Instagram seria implementada
+        logger.info(`Post publicado com a imagem: ${image} e o conteúdo: ${content}`);
+        
+        return res.json({ success: true, message: 'Post publicado com sucesso!' });
+
+    } catch (error) {
+        logger.error('Error publishing post:', error);
+        return res.status(500).json({ error: (error as Error).message });
+    }
+});
+
 export default router;
