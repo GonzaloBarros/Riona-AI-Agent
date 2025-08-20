@@ -1,28 +1,26 @@
-import express, { Application } from "express";
+import express, { Application, Request, Response } from "express";
 import cookieParser from "cookie-parser";
 import dotenv from "dotenv";
-import helmet from "helmet"; // For securing HTTP headers
+import helmet from "helmet";
 import cors from "cors";
 import session from 'express-session';
-
+import { GoogleGenerativeAI } from '@google/generative-ai';
 import logger, { setupErrorHandlers } from "./config/logger";
-import { setup_HandleError } from "./utils";
-import { connectDB } from "./config/db";
 import apiRoutes from "./routes/api";
-// import { main as twitterMain } from './client/Twitter'; //
-// import { main as githubMain } from './client/GitHub'; //
-
-// Set up process-level error handlers
-setupErrorHandlers();
 
 // Initialize environment variables
 dotenv.config();
 
-// Initialize Express app
 const app: Application = express();
+const API_KEY = process.env.GEMINI_API_KEY;
 
-// Connect to the database
-connectDB();
+if (!API_KEY) {
+    throw new Error("GEMINI_API_KEY not found in .env file");
+}
+
+const genAI = new GoogleGenerativeAI(API_KEY);
+const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
+
 
 // Middleware setup
 app.use(helmet({
@@ -34,55 +32,46 @@ app.use(helmet({
     },
 }));
 app.use(cors());
-app.use(express.json()); // JSON body parsing
-app.use(express.urlencoded({ extended: true, limit: "1kb" })); // URL-encoded data
-app.use(cookieParser()); // Cookie parsing
+app.use(express.json());
+app.use(express.urlencoded({ extended: true, limit: "1kb" }));
+app.use(cookieParser());
 app.use(session({
-  secret: process.env.SESSION_SECRET || 'supersecretkey',
-  resave: false,
-  saveUninitialized: false,
-  cookie: { maxAge: 2 * 60 * 60 * 1000, sameSite: 'lax' },
+    secret: process.env.SESSION_SECRET || 'supersecretkey',
+    resave: false,
+    saveUninitialized: false,
+    cookie: { maxAge: 2 * 60 * 60 * 1000, sameSite: 'lax' },
 }));
 
-// Serve static files from the 'public' directory
-app.use(express.static('frontend/dist'));
 
-// API Routes
+// Rotas da API
 app.use('/api', apiRoutes);
 
-app.get('*', (_req, res) => {
-    res.sendFile('index.html', { root: 'frontend/dist' });
+// Rota para a nossa funcionalidade de IA
+app.post('/api/generate-post', async (req: Request, res: Response) => {
+    try {
+        const { message } = req.body;
+
+        if (!message) {
+            return res.status(400).json({ error: 'Message (topic) is required.' });
+        }
+
+        const prompt = `Create a social media post (for Instagram) about the following topic: "${message}". The response should be professional, optimistic and include relevant hashtags. Format the response as a simple text, without JSON.`;
+
+        const result = await model.generateContent(prompt);
+        const text = result.response.text();
+        
+        return res.json({ response: text });
+
+    } catch (error) {
+        console.error('Error generating AI post:', error);
+        return res.status(500).json({ error: 'An internal error occurred while communicating with the AI.' });
+    }
 });
 
-/*
-const runAgents = async () => {
-  while (true) {
-    logger.info("Starting Instagram agent iteration...");
-    await runInstagram();
-    logger.info("Instagram agent iteration finished.");
-
-    // logger.info("Starting Twitter agent...");
-    // await twitterMain();
-    // logger.info("Twitter agent finished.");
-
-    // logger.info("Starting GitHub agent...");
-    // await githubMain();
-    // logger.info("GitHub agent finished.");
-
-    // Wait for 30 seconds before next iteration
-    await new Promise((resolve) => setTimeout(resolve, 30000));
-  }
-};
-
-runAgents().catch((error) => {
-  setup_HandleError(error, "Error running agents:");
-});
-*/
-
-// Error handling
+// Outras rotas e tratamento de erros
 app.use((err: Error, _req: express.Request, res: express.Response, _next: express.NextFunction) => {
-  logger.error('Unhandled error:', err);
-  res.status(500).json({ error: 'Internal server error' });
+    logger.error('Unhandled error:', err);
+    res.status(500).json({ error: 'Internal server error' });
 });
 
 export default app;

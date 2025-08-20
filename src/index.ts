@@ -1,31 +1,7 @@
-import dotenv from "dotenv";
-import logger from "./config/logger";
-import { shutdown } from "./services";
-import app from "./app";
-import { initAgent } from "./Agent/index";
+import app from './app';
 
-dotenv.config();
+const PORT = parseInt(process.env.PORT || '5001', 10);
 
-async function startServer() {
-  try {
-    await initAgent();
-  } catch (err) {
-    logger.error("Error during agent initialization:", err);
-    process.exit(1);
-  }
-
-  const server = app.listen(process.env.PORT || 3000, () => {
-    logger.info(`Server is running on port ${process.env.PORT || 3000}`);
-  });
-
-  process.on("SIGTERM", () => {
-    logger.info("Received SIGTERM signal.");
-    shutdown(server);
-  });
-  process.on("SIGINT", () => {
-    logger.info("Received SIGINT signal.");
-    shutdown(server);
-  });
-}
-
-startServer();
+app.listen(PORT, '0.0.0.0', () => {
+    console.log(`Server is running on port ${PORT}`);
+});
