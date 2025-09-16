@@ -17,14 +17,9 @@ const API_KEY = process.env.GEMINI_API_KEY;
 if (!API_KEY) {
     throw new Error("GEMINI_API_KEY not found in .env file");
 }
-// Adicione esta linha depois das outras rotas
-app.get('/health', (req: Request, res: Response) => {
-    res.json({ status: 'OK', timestamp: new Date().toISOString() });
-});
 
 const genAI = new GoogleGenerativeAI(API_KEY);
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
-
 
 // Middleware setup
 app.use(helmet({
@@ -46,6 +41,15 @@ app.use(session({
     cookie: { maxAge: 2 * 60 * 60 * 1000, sameSite: 'lax' },
 }));
 
+// Rota de health check para Railway (ANTES das outras rotas)
+app.get('/health', (req: Request, res: Response) => {
+    res.status(200).json({
+        status: 'online',
+        uptime: process.uptime(),
+        timestamp: new Date().toISOString(),
+        service: 'Riona-AI-Agent'
+    });
+});
 
 // Rotas da API
 app.use('/api', apiRoutes);
