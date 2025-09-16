@@ -6,6 +6,7 @@
     "start": "node build/index.js",
     "build": "tsc && npm run postbuild",
     "postbuild": "copyfiles -u 3 src/Agent/characters/*.json build/Agent/characters",
+    "postinstall": "npm run build",
     "dev": "ts-node src/index.ts",
     "train-model": "tsc && node build/Agent/training/Model.js",
     "train:link": "tsc && node build/Agent/training/WebsiteScraping.js",
