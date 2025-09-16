@@ -17,6 +17,10 @@ const API_KEY = process.env.GEMINI_API_KEY;
 if (!API_KEY) {
     throw new Error("GEMINI_API_KEY not found in .env file");
 }
+// Adicione esta linha depois das outras rotas
+app.get('/health', (req: Request, res: Response) => {
+    res.json({ status: 'OK', timestamp: new Date().toISOString() });
+});
 
 const genAI = new GoogleGenerativeAI(API_KEY);
 const model = genAI.getGenerativeModel({ model: "gemini-1.5-flash" });
