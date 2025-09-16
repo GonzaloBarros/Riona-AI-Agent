@@ -1,10 +1,12 @@
 {
   "name": "riona-ai-agent",
   "version": "1.0.0",
-  "main": "src/index.ts",
+  "main": "build/index.js",
   "scripts": {
-    "start": "tsc && npm run postbuild && node build/index.js",
+    "start": "node build/index.js",
+    "build": "tsc && npm run postbuild",
     "postbuild": "copyfiles -u 3 src/Agent/characters/*.json build/Agent/characters",
+    "dev": "ts-node src/index.ts",
     "train-model": "tsc && node build/Agent/training/Model.js",
     "train:link": "tsc && node build/Agent/training/WebsiteScraping.js",
     "train:audio": "tsc && node build/Agent/training/TrainWithAudio.js",
@@ -14,6 +16,9 @@
   "author": "",
   "license": "ISC",
   "description": "Riona-AI-Agent is an AI-powered automation tool designed to interact with various social media platforms.",
+  "engines": {
+    "node": ">=18.0.0"
+  },
   "dependencies": {
     "@google/generative-ai": "^0.21.0",
     "axios": "^1.7.9",
