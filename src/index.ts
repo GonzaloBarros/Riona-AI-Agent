@@ -1,24 +1,11 @@
-// src/index.ts
-import app from './app';
-import * as net from 'net';
+import "dotenv/config";
+import app from "./app";
 
-const findAvailablePort = (startPort: number): Promise<number> => {
-  return new Promise((resolve) => {
-    const server = net.createServer();
-    server.listen(startPort, () => {
-      const port = (server.address() as net.AddressInfo).port;
-      server.close(() => resolve(port));
-    });
-    server.on('error', () => resolve(findAvailablePort(startPort + 1)));
-  });
-};
+const PORT = Number(process.env.PORT || 3000);
 
-const startServer = async () => {
-  const PORT = await findAvailablePort(parseInt(process.env.PORT || '5001', 10));
-  
-  app.listen(PORT, '0.0.0.0', () => {
-    console.log(`AI Community Manager running on port ${PORT}`);
-  });
-};
-
-startServer();
+// Inicie APENAS o servidor principal da aplicação.
+// Nada de outro server/health separado aqui.
+app.listen(PORT, () => {
+  console.log(`Server listening on :${PORT}`);
+  console.log(`Railway Environment: ${process.env.RAILWAY_ENVIRONMENT || "local"}`);
+});
