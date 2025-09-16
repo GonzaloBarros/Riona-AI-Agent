@@ -1,9 +1,12 @@
-// src/index.ts
+import dotenv from "dotenv";
 import app from "./app";
 
-const PORT = parseInt(process.env.PORT || "5001", 10);
+dotenv.config();
+
+// Use a porta fornecida pelo provedor (Railway) ou 3000 como fallback.
+// NÃO fixe 8080 aqui.
+const PORT = Number(process.env.PORT) || 3000;
 
 app.listen(PORT, "0.0.0.0", () => {
-  console.log(`Server listening on ${PORT}`);
-  console.log(`Railway Environment: ${process.env.RAILWAY_ENVIRONMENT || "local"}`);
+  console.log(`Main server listening on port ${PORT} (NODE_ENV=${process.env.NODE_ENV || "development"})`);
 });
