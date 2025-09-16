@@ -1,11 +1,9 @@
-import "dotenv/config";
+// src/index.ts
 import app from "./app";
 
-const PORT = Number(process.env.PORT || 3000);
+const PORT = parseInt(process.env.PORT || "5001", 10);
 
-// Inicie APENAS o servidor principal da aplicação.
-// Nada de outro server/health separado aqui.
-app.listen(PORT, () => {
-  console.log(`Server listening on :${PORT}`);
+app.listen(PORT, "0.0.0.0", () => {
+  console.log(`Server listening on ${PORT}`);
   console.log(`Railway Environment: ${process.env.RAILWAY_ENVIRONMENT || "local"}`);
 });
